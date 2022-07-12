@@ -40,22 +40,23 @@ class StaticURLTests(TestCase):
         }
         for address, httpstatus in url_names_https_status.items():
             with self.subTest(adress=address):
-                response = self.authorized_client.get(address,follow=True)
+                response = self.authorized_client.get(address, follow=True)
                 self.assertEqual(response.status_code, httpstatus)
 
     def test_urls_uses_correct_template(self):
         """url-адрес использует соответсвующий шаблон"""
         templates_url_names = {
-            'posts/index.html': '/',
-            'posts/group_list.html': f'/group/{self.group.slug}/',
-            'posts/profile.html': f'/profile/{self.author.username}/',
-            'posts/post_detail.html': f'/posts/{self.post.id}/',
-            'posts/create_post.html': f'/posts/{self.post.id}/create/',
-            'posts/create_post.html': '/create/'
+             '/': 'posts/index.html',
+             f'/group/{self.group.slug}/': 'posts/group_list.html',
+             f'/profile/{self.author.username}/': 'posts/profile.html',
+             f'/posts/{self.post.id}/': 'posts/post_detail.html',
+             f'/posts/{self.post.id}/create/': 'posts/create_post.html',
+             '/create/': 'posts/create_post.html'
         }
-        for template, address in templates_url_names.items():
+        for address, template in templates_url_names.items():
             with self.subTest(address=address):
-                response = self.authorized_client.get(address, follow=True)
+                response = self.authorized_client.get(address,
+                                                      follow=True)
                 self.assertTemplateUsed(response, template)
 
     def test_redirect_anonymous(self):
@@ -63,8 +64,7 @@ class StaticURLTests(TestCase):
         пользователя на страницу авторизации из url redirect"""
         self.assertRedirects(
             self.guest_client.get(f'/posts/{self.post.id}/edit/'),
-            '/auth/login/' + '?next=' + f'/posts/{self.post.id}/edit/'
-        )
+            '/auth/login/' + '?next=' + f'/posts/{self.post.id}/edit/')
         self.assertRedirects(
             self.guest_client.get('/create/'),
             '/auth/login/' + '?next=' + '/create/'

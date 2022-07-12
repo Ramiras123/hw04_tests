@@ -28,4 +28,3 @@ class StaticURLTests(TestCase):
             with self.subTest(address=address):
                 response = self.guest_client.get(address)
                 self.assertEqual(response.status_code, httpstatus)
-
