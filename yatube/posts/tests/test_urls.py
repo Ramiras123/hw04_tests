@@ -55,8 +55,8 @@ class StaticURLTests(TestCase):
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
-                response = self.authorized_client_author.get(address,
-                                                      follow=True)
+                response = self.authorized_client_author.get(
+                    address, follow=True)
                 self.assertTemplateUsed(response, template)
 
     def test_redirect_anonymous(self):
