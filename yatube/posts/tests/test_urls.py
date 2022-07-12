@@ -46,12 +46,12 @@ class StaticURLTests(TestCase):
     def test_urls_uses_correct_template(self):
         """url-адрес использует соответсвующий шаблон"""
         templates_url_names = {
-             '/': 'posts/index.html',
-             f'/group/{self.group.slug}/': 'posts/group_list.html',
-             f'/profile/{self.author.username}/': 'posts/profile.html',
-             f'/posts/{self.post.id}/': 'posts/post_detail.html',
-             f'/posts/{self.post.id}/create/': 'posts/create_post.html',
-             '/create/': 'posts/create_post.html'
+            '/': 'posts/index.html',
+            f'/group/{self.group.slug}/': 'posts/group_list.html',
+            f'/profile/{self.author.username}/': 'posts/profile.html',
+            f'/posts/{self.post.id}/': 'posts/post_detail.html',
+            f'/posts/{self.post.id}/create/': 'posts/create_post.html',
+            '/create/': 'posts/create_post.html'
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
@@ -67,5 +67,4 @@ class StaticURLTests(TestCase):
             '/auth/login/' + '?next=' + f'/posts/{self.post.id}/edit/')
         self.assertRedirects(
             self.guest_client.get('/create/'),
-            '/auth/login/' + '?next=' + '/create/'
-        )
+            '/auth/login/' + '?next=' + '/create/')
