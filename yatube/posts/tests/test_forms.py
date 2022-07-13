@@ -54,11 +54,11 @@ class PostFormTests(TestCase):
             Post.objects.filter(
                 text='Тестовый пост',
                 group=self.group_1
-            ).exists()
-        )
+            ).exists())
         self.assertTrue(
-            Post.objects.filter(text='Тестовый пост',
-                                author=self.author
+            Post.objects.filter(
+                text='Тестовый пост',
+                author=self.author
             ).exists())
 
     def test_edit_post_form(self):
