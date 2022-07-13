@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from ..models import Post, User, Group
 from http import HTTPStatus
+from django.urls import reverse
 
 
 class StaticURLTests(TestCase):
@@ -13,6 +14,30 @@ class StaticURLTests(TestCase):
             title='test_title',
             slug='test_slug'
         )
+        cls.post = Post.objects.create(
+            text='test text',
+            author=cls.author,
+            group=cls.group
+        )
+        cls.template_url_names = {
+            reverse('posts:index'): ['posts/index.html', HTTPStatus.OK],
+            reverse('posts:group_list', kwargs={'slug': cls.group.slug}):
+                ['posts/group_list.html', HTTPStatus.OK],
+            reverse('posts:profile', kwargs={'username': cls.author.username}):
+                ['posts/profile.html', HTTPStatus.OK],
+            reverse('posts:post_detail', kwargs={'post_id': cls.post.pk}):
+                ['posts/post_detail.html', HTTPStatus.OK],
+            reverse('posts:post_create'):
+                ['posts/create_post.html', HTTPStatus.FOUND],
+            reverse('posts:post_edit', kwargs={'post_id': cls.post.pk}):
+                ['posts/create_post.html', HTTPStatus.FOUND],
+        }
+        cls.url_names_https_status_auth = {
+            '/': HTTPStatus.OK,
+            f'/group/{cls.group.slug}/': HTTPStatus.OK,
+            f'/profile/{cls.author.username}': HTTPStatus.OK,
+            '/unexciting_page/': HTTPStatus.NOT_FOUND
+        }
 
     def setUp(self) -> None:
         self.guest_client = Client()
@@ -20,44 +45,33 @@ class StaticURLTests(TestCase):
         self.authorized_client.force_login(self.not_author)
         self.authorized_client_author = Client()
         self.authorized_client_author.force_login(self.author)
-        self.post = Post.objects.create(
-            text='test text',
-            author=self.author,
-            group=self.group
-        )
 
     def test_homepage(self):
         response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_url_avaible_all_user(self):
-        """Страницы из url httpstatus доступны всем пользователям."""
-        url_names_https_status = {
-            '/': HTTPStatus.OK,
-            f'/group/{self.group.slug}/': HTTPStatus.OK,
-            f'/profile/{self.author.username}': HTTPStatus.OK,
-            '/unexciting_page/': HTTPStatus.NOT_FOUND
-        }
-        for address, httpstatus in url_names_https_status.items():
+    def test_urls_guest(self):
+        """Страницы недоступны неавторизованному юзеру"""
+        for address, template in self.template_url_names.items():
+            with self.subTest(address=address):
+                response = self.guest_client.get(address)
+                self.assertEqual(response.status_code, template[1])
+
+    def test_url_avaible_auth_user(self):
+        """Страницы из url httpstatus доступны
+        авторизованному пользователю"""
+        for address, httpstatus in self.url_names_https_status_auth.items():
             with self.subTest(adress=address):
                 response = self.authorized_client.get(address, follow=True)
                 self.assertEqual(response.status_code, httpstatus)
 
     def test_pages_uses_correct_templates(self):
         """url-адрес использует соответсвующий шаблон"""
-        templates_url_names = {
-            '/': 'posts/index.html',
-            '/create/': 'posts/create_post.html',
-            f'/group/{self.group.slug}/': 'posts/group_list.html',
-            f'/profile/{self.author.username}/': 'posts/profile.html',
-            f'/posts/{self.post.id}/': 'posts/post_detail.html',
-            f'/posts/{self.post.id}/edit/': 'posts/create_post.html'
-        }
-        for address, template in templates_url_names.items():
+        for address, template in self.template_url_names.items():
             with self.subTest(address=address):
                 response = self.authorized_client_author.get(
                     address, follow=True)
-                self.assertTemplateUsed(response, template)
+                self.assertTemplateUsed(response, template[0])
 
     def test_redirect_anonymous(self):
         """Перенаправление незарегистрированного

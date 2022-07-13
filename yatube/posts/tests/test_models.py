@@ -26,6 +26,8 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         test_object_name = post.text[:15]
         self.assertEqual(test_object_name, str(post))
+        exp_group = self.group.title
+        self.assertEqual(exp_group, str(self.group))
 
     def test_help_text(self):
         """help_text в полях совпадает с ожидаемым."""
